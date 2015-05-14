@@ -8,6 +8,15 @@ Desktop.ini
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
 
+# Atmel Studio files
+*.o
+*.hex
+*.eep
+*.lss
+*.map
+Debug
+
+
 # Windows Installer files
 *.cab
 *.msi
