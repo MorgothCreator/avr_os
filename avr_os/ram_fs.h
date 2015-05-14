@@ -63,11 +63,13 @@ typedef enum {
 #define AVR_FS_FILE_ATTR_TYPE_STRUCT		(2 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry points to a structure file, that is already allocated (like a link but with size) */
 #define AVR_FS_FILE_ATTR_TYPE_STRUCT_FILE	(3 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry points to a structure file , hat will be created*/
 #define AVR_FS_FILE_ATTR_TYPE_FS			(4 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry point to a file system structure */
-#define AVR_FS_FILE_ATTR_TYPE_DIR			(8 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry point to a directory */
-#define AVR_FS_FILE_ATTR_TYPE_LINK			(9 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry is a link to another entry */
+#define AVR_FS_FILE_ATTR_TYPE_ROOT			(8 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry point to a directory */
+#define AVR_FS_FILE_ATTR_TYPE_DIR			(9 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry point to a directory */
+#define AVR_FS_FILE_ATTR_TYPE_NOT_RET_DIR	(10 << AVR_FS_FILE_ATTR_ACCES_gp) /* The entry is empty */
+#define AVR_FS_FILE_ATTR_TYPE_LINK			(11 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry is a link to another entry */
 
 #define AVR_FS_FILE_ATTR_ACCES_gp			4
-#define AVR_FS_FILE_ATTR_ACCES_gm			(0x03 << AVR_FS_FILE_ATTR_ACCES_gp)
+#define AVR_FS_FILE_ATTR_ACCES_gm			(0x07 << AVR_FS_FILE_ATTR_ACCES_gp)
 
 #define AVR_FS_FILE_ATTR_ACCES_WRITABLE		(0 << AVR_FS_FILE_ATTR_ACCES_gp) /* The entry is empty */
 #define AVR_FS_FILE_ATTR_ACCES_READONLY		(1 << AVR_FS_FILE_ATTR_ACCES_gp) /* The entry is empty */
@@ -84,20 +86,20 @@ typedef struct
 	char name[RAM_FS_FILENAME_MAX_LEN];
 }avr_fs;
 
-FRESULT fs_item_register (
+FRESULT fs_item_register (	/* FR_OK(0): successful, !=0: error code. */
 	avr_fs **dj,			/* Pointer to the directory object. */
 	const char *path,		/* Pointer to the file name. */
 	unsigned char attr,		/* Attribute for new entry. */
 	unsigned int addr,		/* If is a link or a structure here is the address. */
 	unsigned int size		/* If is a file, this contain the initial size of the file, if is a link this contain the item address. */
 );
-FRESULT fs_item_delete (
-	avr_fs **dj		/* Pointer to the directory/file object. */
+FRESULT fs_item_delete (	/* FR_OK(0): successful, !=0: error code. */
+	avr_fs **dj				/* Pointer to the directory/file object. */
 );
-FRESULT fs_recursive_item_delete (
-	avr_fs **dj		/* Pointer to the directory/file object. */
+FRESULT fs_recursive_item_delete (	/* FR_OK(0): successful, !=0: error code. */
+	avr_fs **dj						/* Pointer to the directory/file object. */
 );
-FRESULT fs_item_find (
+FRESULT fs_item_find (		/* FR_OK(0): successful, !=0: error code. */
 	avr_fs **dj,			/* Pointer to the directory object. */
 	const char *path		/* Pointer to the file name. */
 );
@@ -110,18 +112,21 @@ FRESULT fs_follow_path (	/* FR_OK(0): successful, !=0: error code. */
 	unsigned char permision,/* here is the permision. */
 	unsigned int filesize	/* If is a file, structure or fs structure here is the size. */
 );
-FRESULT fs_open (
-	avr_fs **fp,		/* Pointer to the blank file object. */
-	const char *path,	/* Pointer to the file name. */
-	unsigned char mode,	/* Access mode and file open mode flags. */
+FRESULT fs_open (			/* FR_OK(0): successful, !=0: error code. */
+	avr_fs **fp,			/* Pointer to the blank file object. */
+	const char *path,		/* Pointer to the file name. */
+	unsigned char mode,		/* Access mode and file open mode flags. */
 	unsigned char type,		/* If is a file, structure or fs structure here is the type. . */
 	unsigned int addr,		/* If is a link here is the address. */
 	unsigned char permision,/* here is the permision. */
 	unsigned int filesize	/* If is a file, structure or fs structure here is the size. */
 );
-FRESULT fs_init(
-	char *fs_name, /* File system name. */
-	int drive/* Drive nr to mount. */
+FRESULT fs_delete (
+	const char *path	/* Pointer to the file name. */
+);
+FRESULT fs_init(			/* FR_OK(0): successful, !=0: error code. */
+	char *fs_name,			/* File system name. */
+	int drive				/* Drive nr to mount. */
 );
 
 extern avr_fs *ram_fs_root[];

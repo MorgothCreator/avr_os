@@ -15,6 +15,15 @@
 #define THREAD_WATCHDOG	1000
 #endif
 
+typedef struct
+{
+	unsigned int stak_size;
+	unsigned int attribute;
+	unsigned int version;
+	signed char priority;
+	unsigned char name[11];
+}task_header;
+
 void os_init(void);
 bool os_task_add(void *address);
 bool os_task_close(unsigned int pid);

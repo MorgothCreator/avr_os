@@ -90,7 +90,9 @@ ISR(TASK_ISR, ISR_NAKED)
 	  "I" (_SFR_IO_ADDR(SPL)),
 	  "I" (_SFR_IO_ADDR(SPH))
 	);
-	
+/*
+ * Change the current task with the next task, is a round robin function.
+ */
 	do
 	{
 		thread_count++;
@@ -104,7 +106,7 @@ ISR(TASK_ISR, ISR_NAKED)
 	
 	
 /*
- * Restore STAK.
+ * Restore STAK pointer.
  */
 	__asm__ __volatile__
 	(

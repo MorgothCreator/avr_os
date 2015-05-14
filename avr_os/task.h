@@ -32,15 +32,6 @@ typedef struct
 	bool request_to_close;
 }thread_data;
 
-typedef struct  
-{
-	unsigned int stak_size;
-	unsigned int attribute;
-	unsigned int version;
-	signed char priority;
-	unsigned char name[12];
-}task_header;
-
 extern unsigned int thread_count;
 extern unsigned int oppened_threads_nr;
 extern thread_data task_table[];
