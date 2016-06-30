@@ -16,7 +16,7 @@
 int main(void)
 {
 	os_init();
-	fs_init("fs_1", 0);
+	fs_init("fs_1", 'A');
 	
 	avr_fs *dj;
 	fs_open(&dj, "A/salut/", FA_CREATE_ALWAYS, AVR_FS_FILE_ATTR_TYPE_DIR, 0, AVR_FS_FILE_ATTR_ACCES_WRITABLE, 0);

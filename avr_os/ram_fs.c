@@ -70,7 +70,7 @@ FRESULT fs_item_register (
 	}/* If no empty already allocated entry is not found, relocate the current directory with the new size and actualize the references to actual directory*/
 	if(!empty_entry_discovered)
 	{
-		actual_dir = realloc(actual_dir, actual_dir->file_size + sizeof(avr_fs));/* Reallocate memory for current directory, with a entry more memory.*/
+		actual_dir = realloc(actual_dir, actual_dir->file_size + sizeof(avr_fs));/* Reallocate memory for current directory, with one entry more memory.*/
 		if(!actual_dir)
 		{
 			free(new_dir);
@@ -119,7 +119,7 @@ FRESULT fs_item_register (
 	{/* In case of A new entry has been allocated. */
 		actual_dir->file_size = actual_dir->file_size + sizeof(avr_fs);/* Actualize the size of current directory. */
 	}
-	strncpy(new_entry->name, path, RAM_FS_FILENAME_MAX_LEN);/* Write the name new directory. */
+	strncpy(new_entry->name, path, RAM_FS_FILENAME_MAX_LEN);/* Write the name of new directory. */
 	new_entry->file_attr = attr;/* Write attribute of new directory. */
 	new_entry->data = (unsigned char *)new_dir;/* Write the name of new item. */
 	if((attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_DIR || 
@@ -495,7 +495,7 @@ FRESULT fs_delete (
 
 FRESULT fs_init(char *fs_name, int drive)
 {
-	if(ram_fs_root[drive])
+	if(ram_fs_root[drive - 'A'])
 	{
 		return FR_MKFS_ABORTED;
 	}
@@ -509,6 +509,6 @@ FRESULT fs_init(char *fs_name, int drive)
 	ram_fs->file_attr = AVR_FS_FILE_ATTR_TYPE_ROOT;
 	ram_fs->file_size = sizeof(avr_fs);
 	strcpy(ram_fs->name, fs_name);/* Write on new directory name of parent directory. */
-	ram_fs_root[drive] = ram_fs;
+	ram_fs_root[drive - 'A'] = ram_fs;
 	return FR_OK;
 }
