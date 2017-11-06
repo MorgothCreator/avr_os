@@ -33,10 +33,10 @@ FRESULT fs_item_register (
 	unsigned int size		/* If is a file, this contain the initial size of the file, if is a link this contain the item address. */
 )
 {
-	if(ram_fs_lock)
-		return FR_LOCKED;
 	if(strlen(path) > RAM_FS_FILENAME_MAX_LEN)
 		return FR_INVALID_NAME;
+	if(ram_fs_lock)
+		return FR_LOCKED;
 	ram_fs_lock = true;/* Lock the ram_fs, to avoid interference with another modification done by another thread. */
 	avr_fs *new_dir = (avr_fs *)addr;/* Write the linked item address, if is a link, this will be used for new entry. */
 	if((attr & AVR_FS_FILE_ATTR_TYPE_gm) != AVR_FS_FILE_ATTR_TYPE_LINK && 
