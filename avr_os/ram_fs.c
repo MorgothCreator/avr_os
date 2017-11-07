@@ -70,7 +70,12 @@ FRESULT fs_item_register (
 	}/* If no empty already allocated entry is not found, relocate the current directory with the new size and actualize the references to actual directory*/
 	if(!empty_entry_discovered)
 	{
+		avr_fs *actual_dir_back = actual_dir;
 		actual_dir = realloc(actual_dir, actual_dir->file_size + sizeof(avr_fs));/* Reallocate memory for current directory, with one entry more memory.*/
+#if (RAM_FS_DEBUG == 1)
+		if(actual_dir_back != actual_dir)
+			memset(actual_dir_back, 0, actual_dir->file_size);
+#endif
 		if(!actual_dir)
 		{
 			free(new_dir);
@@ -108,6 +113,9 @@ FRESULT fs_item_register (
 		new_dir->parent_entry_offset = actual_dir->file_size;/* Write on new directory the offset address of parent entry. */
 		new_dir->file_size = sizeof(avr_fs);/* Write on new directory the size of new directory. */
 		new_dir->file_attr = AVR_FS_FILE_ATTR_TYPE_DIR;/* Write on new directory attribute of new directory. */
+#if (RAM_FS_DEBUG == 1)
+		memset(new_dir->name, 0, RAM_FS_FILENAME_MAX_LEN);
+#endif
 		strcpy(new_dir->name, "..");/* Write on new directory name of parent directory. */
 	}
 	avr_fs *new_entry = (avr_fs *)actual_dir + (actual_dir->file_size / sizeof(avr_fs));/* Calculate the position of new entry on current directory. */
@@ -119,6 +127,9 @@ FRESULT fs_item_register (
 	{/* In case of A new entry has been allocated. */
 		actual_dir->file_size = actual_dir->file_size + sizeof(avr_fs);/* Actualize the size of current directory. */
 	}
+#if (RAM_FS_DEBUG == 1)
+	memset(new_entry->name, 0, RAM_FS_FILENAME_MAX_LEN);
+#endif
 	strncpy(new_entry->name, path, RAM_FS_FILENAME_MAX_LEN);/* Write the name of new directory. */
 	new_entry->file_attr = attr;/* Write attribute of new directory. */
 	new_entry->data = (unsigned char *)new_dir;/* Write the name of new item. */
@@ -157,10 +168,10 @@ avr_fs **dj		/* Pointer to the directory/file object. */
 	{
 		return FR_WRITE_PROTECTED;
 	}
-	if((entry_to_delete->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_ROOT)
-	{
-		return FR_DENIED;/* This is a root directory and cannot be deleted */
-	}
+	//if((entry_to_delete->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_ROOT)
+	//{
+	//	return FR_DENIED;/* This is a root directory and cannot be deleted */
+	//}
 	avr_fs *file_to_delete = (avr_fs *)entry_to_delete->data;
 	if((entry_to_delete->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_DIR ||
 		(entry_to_delete->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_NOT_RET_DIR)
@@ -179,15 +190,20 @@ avr_fs **dj		/* Pointer to the directory/file object. */
 	if((entry_to_delete->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_DIR ||
 		(entry_to_delete->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_NOT_RET_DIR ||
 			(entry_to_delete->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_FILE ||
-				(entry_to_delete->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_STRUCT_FILE)
+				(entry_to_delete->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_STRUCT_FILE ||
+					(entry_to_delete->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_ROOT)
 	{
 #if (RAM_FS_DEBUG == 1)
 		memset(file_to_delete, 0, file_to_delete->file_size);
 #endif
 		free(file_to_delete);
 	}
+#if (RAM_FS_DEBUG == 1)
+	memset(entry_to_delete, 0, sizeof(avr_fs));
+#else
 	entry_to_delete->file_attr &= ~AVR_FS_FILE_ATTR_TYPE_gm;
 	entry_to_delete->data = 0;
+#endif
 	return FR_OK;
 }
 
@@ -305,13 +321,16 @@ FRESULT fs_follow_path (	/* FR_OK(0): successful, !=0: error code. */
 						}
 						else
 						{
-							if((cur_dj->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) != AVR_FS_FILE_ATTR_TYPE_DIR ||
+							if((cur_dj->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) != AVR_FS_FILE_ATTR_TYPE_DIR &&
 								(cur_dj->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) != AVR_FS_FILE_ATTR_TYPE_NOT_RET_DIR)/* Verify if current entry is a directory entry */
 							{
+								if(dir_back) 
+								{
 #if (RAM_FS_DEBUG == 1)
-								memset(dir_back, 0, size_of_tmp_str);
+									memset(dir_back, 0, size_of_tmp_str);
 #endif
-								if(dir_back) free(dir_back);
+									free(dir_back);
+								}
 								return FR_NO_PATH;
 							}
 							//cur_dj = (avr_fs *)cur_dj->data;
@@ -320,18 +339,24 @@ FRESULT fs_follow_path (	/* FR_OK(0): successful, !=0: error code. */
 						}
 					}
 				}
+				if(dir_back)
+				{
 #if (RAM_FS_DEBUG == 1)
-				memset(dir_back, 0, size_of_tmp_str);
+					memset(dir_back, 0, size_of_tmp_str);
 #endif
-				if(dir_back) free(dir_back); /* File has been founded or created. */
+					free(dir_back);
+				}
 				return res;
 			} 
 			else
 			{
+				if(dir_back)
+				{
 #if (RAM_FS_DEBUG == 1)
-				memset(dir_back, 0, size_of_tmp_str);
+					memset(dir_back, 0, size_of_tmp_str);
 #endif
-				if(dir_back) free(dir_back); /* Directory has been founded. */
+					free(dir_back);
+				}
 				//*dj = cur_dj;
 				*dj = (avr_fs *)cur_dj->data;
 				return FR_OK;
@@ -341,16 +366,25 @@ FRESULT fs_follow_path (	/* FR_OK(0): successful, !=0: error code. */
 			(cur_dj->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_STRUCT ||
 				(cur_dj->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_FS)/* If a fs is available, this will be removed. */
 		{
+			if(dir_back)
+			{
 #if (RAM_FS_DEBUG == 1)
-			memset(dir_back, 0, size_of_tmp_str);
+				memset(dir_back, 0, size_of_tmp_str);
 #endif
-			if(dir_back) free(dir_back);
+				free(dir_back);
+			}
 			return FR_NO_PATH;
 		}
 		*segment_end = 0;
 		if(!strcmp(segment_start, "..") && (cur_dj->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) == AVR_FS_FILE_ATTR_TYPE_NOT_RET_DIR)
 		{
-			if(dir_back) free(dir_back);
+			if(dir_back)
+			{
+#if (RAM_FS_DEBUG == 1)
+				memset(dir_back, 0, size_of_tmp_str);
+#endif
+				free(dir_back);
+			}
 			*dj = cur_dj;
 			return FR_NO_PATH;
 		}
@@ -373,10 +407,13 @@ FRESULT fs_follow_path (	/* FR_OK(0): successful, !=0: error code. */
 						(cur_dj->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) != AVR_FS_FILE_ATTR_TYPE_NOT_RET_DIR &&
 							(cur_dj->file_attr & AVR_FS_FILE_ATTR_TYPE_gm) != AVR_FS_FILE_ATTR_TYPE_ROOT)/* If is not a directory or a root can't navigate from here. */
 					{
+						if(dir_back)
+						{
 #if (RAM_FS_DEBUG == 1)
-						memset(dir_back, 0, size_of_tmp_str);
+							memset(dir_back, 0, size_of_tmp_str);
 #endif
-						if(dir_back) free(dir_back);
+							free(dir_back);
+						}
 						return FR_NO_PATH;
 					}
 					res = fs_item_register(&cur_dj, segment_start, AVR_FS_FILE_ATTR_TYPE_DIR | (permision & AVR_FS_FILE_ATTR_ACCES_gm), addr, filesize);/* Create a directory. */
@@ -384,17 +421,26 @@ FRESULT fs_follow_path (	/* FR_OK(0): successful, !=0: error code. */
 			}
 			if(res != FR_OK)
 			{
+				if(dir_back)
+				{
 #if (RAM_FS_DEBUG == 1)
-				memset(dir_back, 0, size_of_tmp_str);
+					memset(dir_back, 0, size_of_tmp_str);
 #endif
-				if(dir_back) free(dir_back);
+					free(dir_back);
+				}
 				return res;
 			}
 		}
 		segment_start = segment_end + 1;
 		if(!cur_dj->data)
 		{
-			if(dir_back) free(dir_back);
+			if(dir_back)
+			{
+#if (RAM_FS_DEBUG == 1)
+				memset(dir_back, 0, size_of_tmp_str);
+#endif
+				free(dir_back);
+			}
 			return FR_INVALID_OBJECT;
 		}
 		if(strlen(segment_start))
@@ -402,10 +448,14 @@ FRESULT fs_follow_path (	/* FR_OK(0): successful, !=0: error code. */
 			cur_dj = (avr_fs *)cur_dj->data;
 		}
 	}
+	if(dir_back)
+	{
 #if (RAM_FS_DEBUG == 1)
-	memset(dir_back, 0, size_of_tmp_str);
+		memset(dir_back, 0, size_of_tmp_str);
 #endif
-	if(dir_back) free(dir_back);
+		free(dir_back);
+	}
+	return FR_OK;
 }
 
 
@@ -495,7 +545,7 @@ FRESULT fs_delete (
 
 FRESULT fs_init(char *fs_name, int drive)
 {
-	if(ram_fs_root[drive - 'A'])
+	if(ram_fs_root[drive])
 	{
 		return FR_MKFS_ABORTED;
 	}
@@ -508,7 +558,10 @@ FRESULT fs_init(char *fs_name, int drive)
 	ram_fs->parent_entry_offset = 0;
 	ram_fs->file_attr = AVR_FS_FILE_ATTR_TYPE_ROOT;
 	ram_fs->file_size = sizeof(avr_fs);
+#if (RAM_FS_DEBUG == 1)
+	memset(ram_fs->name, 0, RAM_FS_FILENAME_MAX_LEN);
+#endif
 	strcpy(ram_fs->name, fs_name);/* Write on new directory name of parent directory. */
-	ram_fs_root[drive - 'A'] = ram_fs;
+	ram_fs_root[drive] = ram_fs;
 	return FR_OK;
 }

@@ -59,9 +59,9 @@ typedef enum {
 #define AVR_FS_FILE_ATTR_TYPE_gm			(0x0F << AVR_FS_FILE_ATTR_TYPE_gp)
 
 #define AVR_FS_FILE_ATTR_TYPE_EMPTY			(0 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry is empty */
-#define AVR_FS_FILE_ATTR_TYPE_FILE			(1 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry points to a regular file */
-#define AVR_FS_FILE_ATTR_TYPE_STRUCT		(2 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry points to a structure file, that is already allocated (like a link but with size) */
-#define AVR_FS_FILE_ATTR_TYPE_STRUCT_FILE	(3 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry points to a structure file , hat will be created*/
+#define AVR_FS_FILE_ATTR_TYPE_FILE			(1 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry point to a regular file */
+#define AVR_FS_FILE_ATTR_TYPE_STRUCT		(2 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry point to a structure file, that is already allocated (like a link but with size) */
+#define AVR_FS_FILE_ATTR_TYPE_STRUCT_FILE	(3 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry point to a structure file , that will be created*/
 #define AVR_FS_FILE_ATTR_TYPE_FS			(4 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry point to a file system structure */
 #define AVR_FS_FILE_ATTR_TYPE_ROOT			(8 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry point to a directory */
 #define AVR_FS_FILE_ATTR_TYPE_DIR			(9 << AVR_FS_FILE_ATTR_TYPE_gp) /* The entry point to a directory */
