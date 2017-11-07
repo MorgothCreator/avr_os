@@ -1,4 +1,7 @@
 # avr_os V0.1
+
+# The project has been moved here https://morgothdisk.com:30001/explore/projects
+
 8bit avr atmega and atxmega OS.
 
 This OS is intended to work with 8 bit AVR microcontrollers like Atmega and ATxmega.
