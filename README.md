@@ -1,6 +1,6 @@
 # avr_os V0.1
 
-# The project has been moved here https://git.morgothdisk.com
+# The project has been moved here https://git.morgothdisk.com/explore/projects
 
 8bit avr atmega and atxmega OS.
 
